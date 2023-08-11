@@ -47,7 +47,7 @@ const convertCsvToJson = async (csv, trimColumn = true, options = {}) => {
 
   return trimColumn ? json.map(item => (
     Object.entries(item).reduce((acc, [key, value]) => ({
-      ...acc, [key.trim().split(' ')[0]]: value }), {})
+      ...acc, [key.trim().split(' ')[0]]: value.trim() }), {})
   )) : json;
 }
 
