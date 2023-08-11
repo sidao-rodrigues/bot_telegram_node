@@ -119,11 +119,15 @@ const generateRoutineInfo = (name, group) => {
 const generateURLContext = (data, step) => {
   const steps = {
     1: data.urlSheet ? 
-      `Olá ${data.name}❗️\n\nJá <b>existe</b> uma URL do Google Sheets cadastrada.\n\nInsira uma nova URL do Google Sheets para ser substituída:` : 
-      `Olá ${data.name}❗️\n\nInsira uma URL do Google Sheets para ser cadastrada:`,
-    2: data.url ? 
-      `URL Salva com sucesso❗️\n\nURL: <a href="${data.url}">URL Google</a>` : 
-      `URL inválida: <b>${data.url}</b>`,
+      `Olá ${data.name}❗️\n\nJá <b>existe</b> uma URL do Google Sheets cadastrada.\n\n` + 
+        `Insira uma nova URL do Google Sheets para ser substituída (para cancelar digite <pre>cancelar</pre>):` : 
+      `Olá ${data.name}❗️\n\nInsira uma URL do Google Sheets para ser cadastrada (para cancelar digite <pre>cancelar</pre>):`,
+    2: {
+      message: data.url ? 
+        `URL Salva com sucesso❗️\n\nURL: <a href="${data.url}">URL Google</a>` : 
+        `URL inválida: <b>${data.url}</b>`,
+      answerCbQuery: 'Operação cancelada com sucesso❗️',
+    }
   }
   return steps[step] ?? generateError('Erro na geração do contexto de <b>generateURLContext</b>');
 } 
