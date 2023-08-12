@@ -28,8 +28,8 @@ const initTelegraf = async () => {
   
   await bot.telegram.deleteWebhook();
 
-  if(process.env.URL_NETIFLY) {
-    await bot.telegram.setWebhook(process.env.URL_NETIFLY + '/apibot' || '')
+  if(process.env?.URL_CLOUD.trim()) {
+    await bot.telegram.setWebhook(process.env.URL_CLOUD + '/apibot' || '')
   }
   
   const botInfo = (await bot.telegram.getWebhookInfo());
