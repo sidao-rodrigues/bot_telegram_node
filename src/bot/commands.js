@@ -61,7 +61,7 @@ const dailyInfo = async (context, byCommand = false) => {
       await sendMessage(message, { parse_mode: 'html' });
     }
   } catch(error) {
-    console.log('Error: ', err);
+    console.log('Error: ', error);
     const messageError = generateError(error.message);
     await sendMessage(messageError);
   } 
