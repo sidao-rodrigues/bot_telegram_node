@@ -7,7 +7,11 @@ let crontabExpression = process.env.CRONTAB_EXPRESSION || '0 8,10,12,14,16,18 * 
 const initSchedule = () => {
   console.log('Init crontab', crontabExpression);
   job = crontab.schedule(crontabExpression, async () => {
+    const dateUTC = (new Date()).toLocaleString('pt-BR', { timeZoneName: 'longOffset', timeZone: 'America/Sao_Paulo' });
+    console.log('CALL: ', (new Date().toLocaleString('pt-BR')), ' <> UTC: ', dateUTC);
     await dailyInfo();
+  }, {
+    timezone: 'America/Sao_Paulo'
   });
   startSchedule();
 }
