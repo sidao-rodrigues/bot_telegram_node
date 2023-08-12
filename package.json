@@ -2,14 +2,14 @@
   "name": "bot_telegram",
   "version": "0.0.1",
   "description": "Bot Telegram with nodejs",
-  "main": "src/server.js",
+  "main": "src/index.js",
   "engines": {
     "node": "18.x"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./src/server.js",
-    "nodemon": "nodemon ./server.js"
+    "start": "node src/index.js",
+    "nodemon": "nodemon index.js"
   },
   "author": "Sidney R. (Sidão)",
   "license": "ISC",
