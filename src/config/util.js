@@ -12,12 +12,12 @@ const getDateNowMonth = () => {
 
 const getDateNow = () => {
   const date = new Date();
-  return date.toLocaleDateString('pt-br');
+  return date.toLocaleDateString('pt-br', { timeZone: 'America/Sao_Paulo' });
 }
 
 const getDatetimeNow = () => {
   const date = new Date();
-  return date.toLocaleString('pt-br');
+  return date.toLocaleString('pt-br', { timeZone: 'America/Sao_Paulo' });
 }
 
 const randomNumber = (min = 1, max = 1, quantity = 1) => {
