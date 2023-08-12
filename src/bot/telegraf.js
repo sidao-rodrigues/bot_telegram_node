@@ -11,7 +11,7 @@ const {
 } = require('./commands');
 
 const initTelegraf = async () => {
-  // try {
+  try {
 
     configureScenens(bot);
     
@@ -27,20 +27,21 @@ const initTelegraf = async () => {
     
     console.log('Bot RUNING...');
     
-    // await bot.telegram.deleteWebhook();
+    await bot.telegram.deleteWebhook();
     
-    // if(process.env?.URL_CLOUD.trim()) {
-    //   await bot.telegram.setWebhook(process.env.URL_CLOUD + '/apibot' || '')
-    // }
+    if(process.env?.URL_CLOUD.trim()) {
+      await bot.telegram.setWebhook(process.env.URL_CLOUD + '/apibot' || '')
+    }
     
     const botInfo = (await bot.telegram.getWebhookInfo());
     console.log('Bot INFO:', botInfo);
     
     await bot.launch();
-
-  // } catch(error) {
-  //   console.log('Ocorreu um erro no initTelegraf:', error);
-  // }
+    
+  } catch(error) {
+    console.log('Ocorreu um erro no initTelegraf:', error);
+    await bot.launch();
+  }
 
 }
 
