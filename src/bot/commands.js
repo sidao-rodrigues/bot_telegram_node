@@ -92,7 +92,9 @@ const configureUrlContext = () => {
   url.on('text', async (context) => {
     const { message, answerCbQuery } = generateURLContext({ name: context.from.first_name, url: context.message.text }, 2);
 
-    if(context.message.text.toLowerCase() === 'cancelar') {
+    if(context.message.text.toLowerCase() === 'cancelar' || 
+      !context.message.text.toLowerCase().includes('http')
+    ) {
       await context.sendMessage(answerCbQuery);
       return context.scene.leave();
     }
