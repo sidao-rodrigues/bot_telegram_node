@@ -7,7 +7,7 @@ const { generateByCompany, generateAbout, generateCommandList, generateRoutineIn
 
 const hasPermission = async (context, next) => {
   const message = generateAbout(context.from.first_name);
-  console.log(getUsersPermissions(), context.from.id)
+  // console.log(getUsersPermissions(), context.from.id);
   if(getUsersPermissions().includes(context.from.id) || getGroup().id == context.update.message.chat.id) {
     return next();
   }
@@ -57,13 +57,11 @@ const dailyInfo = async (context, byCommand = false) => {
     const data = await getListBySheetName();
     const messages = generateByCompany(data, ['CHAVE', 'PIX', 'STATUS', 'VENCIMENTO', 'EMPRESA']);
 
-    console.log(messages, messages.length);
-    
     for await (const message of messages) {
       await sendMessage(message, { parse_mode: 'html' });
     }
   } catch(error) {
-    console.log(err);
+    console.log('Error: ', err);
     const messageError = generateError(error.message);
     await sendMessage(messageError);
   } 

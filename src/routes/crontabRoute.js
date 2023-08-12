@@ -4,13 +4,11 @@ const { stopSchedule, setNewExpressionSchedule } = require('../crontab/crontab')
 const router = express.Router();
 
 router.get('/stop', (req, res) => {
-  console.log('Stoping crontab...');
   res.set('Content-Type', 'text/html');
   return res.send(Buffer.from('<h2>Stoping crontab...</h2>'));
 });
 
 router.get('/start', (req, res) => {
-  console.log('Starting crontab...');
   res.set('Content-Type', 'text/html');
   return res.send(Buffer.from('<h2>Starting crontab...</h2>'));
 });

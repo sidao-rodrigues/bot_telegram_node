@@ -15,6 +15,7 @@ const initTelegraf = async () => {
   configureScenens(bot);
 
   bot.use(hasPermission);
+  bot.command('start', commandList);
   bot.command('criador', about);
   bot.command('urlgoogle', saveUrlSheWizardScenes);
   bot.command('definirgrupo', saveGroupIdDefault);
@@ -26,12 +27,13 @@ const initTelegraf = async () => {
   console.log('Bot RUNING...');
   
   await bot.telegram.deleteWebhook();
+
   if(process.env.URL_NETIFLY) {
     await bot.telegram.setWebhook(process.env.URL_NETIFLY + '/apibot' || '')
   }
   
   const botInfo = (await bot.telegram.getWebhookInfo());
-  console.log('BOT INFO:', botInfo);
+  console.log('Bot INFO:', botInfo);
 
   await bot.launch();
 

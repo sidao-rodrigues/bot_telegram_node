@@ -1,12 +1,13 @@
 const crontab = require('node-cron');
+const { dailyInfo } = require('../bot/commands');
 
 let job = null;
 let crontabExpression = process.env.CRONTAB_EXPRESSION || '* 9,15 * * 1-6';
 
 const initSchedule = () => {
-  console.log('init', crontabExpression);
+  console.log('Init crontab', crontabExpression);
   job = crontab.schedule(crontabExpression, async () => {
-    console.log('chamou agora:', (new Date()).toISOString(), 'expression:', crontabExpression);
+    await dailyInfo();
   });
   startSchedule();
 }
@@ -22,7 +23,6 @@ const stopSchedule = () => {
 }
 
 const setNewExpressionSchedule = (expression) => {
-  console.log('New Expression:', expression);
   stopSchedule();
   crontabExpression = expression;
   initSchedule();
