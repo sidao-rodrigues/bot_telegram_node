@@ -2,7 +2,7 @@ const crontab = require('node-cron');
 const { dailyInfo } = require('../bot/commands');
 
 let job = null;
-let crontabExpression = process.env.CRONTAB_EXPRESSION || '* 9,15 * * 1-6';
+let crontabExpression = process.env.CRONTAB_EXPRESSION || '0 8,10,12,14,16,18 * * 1-6';//'* 9,15 * * 1-6';
 
 const initSchedule = () => {
   console.log('Init crontab', crontabExpression);

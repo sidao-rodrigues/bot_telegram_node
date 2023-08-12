@@ -110,7 +110,8 @@ const generateRoutineInfo = (name, group) => {
   const message = 
     `Olá <b>${name}</b>, a rotina de informações diárias no grupo ` + 
     `<a href="tg://user?id=${group.id}">@${group.title}</a> está sendo ` + 
-    'de <b><i>Segunda à Sábado</i></b> nos horários de <b>9h</b> e <b>15h</b>😌';
+    'de <b><i>Segunda à Sábado</i></b> nos horários de ' + 
+    '<b>8h</b>, <b>10h</b>, <b>12h</b>, <b>14h</b>, <b>16h</b> e <b>18h</b>😌';
   return message;
 }
 

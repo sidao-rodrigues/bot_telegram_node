@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/server.js",
+    "_start": "node src/server.js",
     "nodemon": "nodemon server.js"
   },
   "author": "Sidney R. (Sidão)",
