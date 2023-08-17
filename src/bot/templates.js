@@ -131,7 +131,7 @@ const generateBacklogMonth = (name = '', items, byCommand = false, byDailyRoutin
   
   const prefix = byDailyRoutine || byCommand ? '' : `Olá <b>${name}</b>, `;
   const firstMessage = 
-    `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pedências por dia referênte ao mês de: <b>${getDateNowMonth()}</b>`;
+    `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pendências por dia referênte ao mês de: <b>${getDateNowMonth()}</b>`;
     
   messages.push(firstMessage);
 
@@ -167,7 +167,7 @@ const generateBacklogMonth = (name = '', items, byCommand = false, byDailyRoutin
       }
     });
   } else {
-    const lastMessage = 'Não há pedências nesse mês 👏👏🥳🥳🤗🤗';
+    const lastMessage = 'Não há pendências nesse mês 👏👏🥳🥳🤗🤗';
     messages.push(lastMessage);
   }
   return messages;
