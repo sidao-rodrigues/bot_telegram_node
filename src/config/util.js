@@ -1,4 +1,9 @@
 const csvToJson = require('csvtojson');
+const package = require('../../package.json');
+
+const getAppVersion = () => {
+  return package.version;
+}
 
 const getTokeURL = () => {
   const url = process.env.URL_SHEETS || '';
@@ -57,5 +62,6 @@ module.exports = {
   getTokeURL,
   convertCsvToJson,
   randomNumber,
-  getDatetimeNow
+  getDatetimeNow,
+  getAppVersion
 }

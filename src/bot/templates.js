@@ -1,4 +1,4 @@
-const { randomNumber, getDatetimeNow } = require("../config/util");
+const { randomNumber, getDatetimeNow, getDateNowMonth, getAppVersion } = require("../config/util");
 
 const URLS = {
   LINKEDIN: 'linkedin.com/in/sidney-rodrigues-54849190',
@@ -91,18 +91,29 @@ const generateAbout = (name) => {
   return message;
 }
 
-const generateCommandList = (name) => {
+const generateBotAbout = (name, botName) => {
+  const message = `Olá <b>${name}</b>, Tudo bem❓\n\n` +
+    `Eu sou o Bot <b>${botName}</b> e ajudo nas rotinas diárias com informações muiiito importantes 🤩🤩🥰😎😎🤖\n\n` +
+    `Atualmente estou na versão: <b>${getAppVersion()}</b> 👽\n` +
+    'Para saber mais sobre meu criador /criador';
+  return message;
+}
+
+const generateCommandList = (name, botName) => {
   const message = 
     `Olá <b>${name}</b>, esta é a lista de comandos disponíveis:\n\n`+ 
     '<b><i>Lista de Comandos</i></b>\n\n' + 
     
-    '/informacoesdiaria - Listar pendências diária\n\n' +
-    '/criador - Sobre meu criador\n\n' +
+    '/start - Listar comandos disponíveis\n\n' +
+    '/ajuda - Listar comandos disponíveis\n\n' +
+    `/sobre - Sobre o <b>${botName}</b>\n\n` +
+    '/criador - Sobre o meu criador\n\n' +
     '/urlgoogle - Definir URL da planilha google\n\n' +
     '/definirgrupo - Definir grupo principal das notificações\n\n' + 
     '/comandos - Listar comandos disponíveis\n\n' +
     '/rotinas - Listar horários das notificações\n\n' +
-    '/ajuda - Listar comandos disponíveis\n\n';
+    '/informacoesdiaria - Listar pendências diária\n\n' +
+    '/pendenciasdomes - Listar quantidade de pendências do mês\n\n';
   return message;
 }
 
@@ -113,6 +124,53 @@ const generateRoutineInfo = (name, group) => {
     'de <b><i>Segunda à Sábado</i></b> nos horários de ' + 
     '<b>8h</b>, <b>10h</b>, <b>12h</b>, <b>14h</b>, <b>16h</b> e <b>18h</b>😌';
   return message;
+}
+
+const generateBacklogMonth = (name = '', items, byCommand = false, byDailyRoutine = true) => {
+  const messages = [];
+  
+  const prefix = byDailyRoutine || byCommand ? '' : `Olá <b>${name}</b>, `;
+  const firstMessage = 
+    `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pedências por dia referênte ao mês de: <b>${getDateNowMonth()}</b>`;
+    
+  messages.push(firstMessage);
+
+  if(items.length > 0) {
+    const data = groupByColumn(items, 'VENCIMENTO');
+    let values = [];
+
+    Object.entries(data).forEach(([key, item]) => {
+      const quantityPerCompany = Object.entries(groupByColumn(item, 'EMPRESA')).map(([key, value]) => ({ [key]: value.length }));
+      values.push({
+        quantityPerCompany: quantityPerCompany,
+        quantityPerDay: String(item.length).padStart(3, '0'),
+        dateNumber: key.split('/').reverse().join(''),
+        date: key,
+      });
+    });
+
+    values = values.sort((a, b) => a.dateNumber > b.dateNumber ? 1 : (a.dateNumber < b.dateNumber ? - 1 : 0));
+
+    let text = '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
+    values.forEach((item, idx) => {
+      const dateText = `🗓️ <pre>${item.date}: ${item.quantityPerDay}</pre>\n`;
+
+      if((text.length + dateText.length) > 4096) {
+        messages.push(text);
+        text = dateText;
+      } else {
+        text += dateText;
+      }
+
+      if(idx === values.length - 1) {
+        messages.push(text);
+      }
+    });
+  } else {
+    const lastMessage = 'Não há pedências nesse mês 👏👏🥳🥳🤗🤗';
+    messages.push(lastMessage);
+  }
+  return messages;
 }
 
 // scenes 
@@ -154,7 +212,9 @@ const generateGroupIdDefault = (data, step) => {
 
 module.exports = {
   generateByCompany,
+  generateBacklogMonth,
   generateAbout,
+  generateBotAbout,
   generateCommandList,
   generateRoutineInfo,
   generateError,

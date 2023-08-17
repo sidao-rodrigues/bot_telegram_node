@@ -7,7 +7,9 @@ const {
   hasPermission,
   commandList,
   routineInfo,
-  dailyInfo
+  dailyInfo,
+  backlogMonthInfo,
+  botAbout
 } = require('./commands');
 
 const initTelegraf = async () => {
@@ -16,14 +18,16 @@ const initTelegraf = async () => {
     configureScenens(bot);
     
     bot.use(hasPermission);
-    bot.command('start', commandList);
-    bot.command('criador', about);
-    bot.command('urlgoogle', saveUrlSheWizardScenes);
-    bot.command('definirgrupo', saveGroupIdDefault);
-    bot.command('comandos', commandList);
-    bot.command('rotinas', routineInfo);
-    bot.command('ajuda', commandList);
-    bot.command('informacoesdiaria', (context) => dailyInfo(context, true));
+    bot.command(/start/ig, commandList);
+    bot.command(/ajuda/ig, commandList);
+    bot.command(/sobre/ig, botAbout);
+    bot.command(/criador/ig, about);
+    bot.command(/urlgoogle/ig, saveUrlSheWizardScenes);
+    bot.command(/definirgrupo/ig, saveGroupIdDefault);
+    bot.command(/comandos/ig, commandList);
+    bot.command(/rotinas/ig, routineInfo);
+    bot.command(/informacoesdiaria/ig, (context) => dailyInfo(context, true, false));
+    bot.command(/pendenciasdomes/ig, backlogMonthInfo);
     
     console.log('Bot RUNING...');
     

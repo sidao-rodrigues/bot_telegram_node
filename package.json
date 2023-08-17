@@ -1,6 +1,6 @@
 {
   "name": "bot_telegram",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Bot Telegram with nodejs",
   "main": "src/server.js",
   "engines": {

@@ -2,7 +2,18 @@ const { Scenes, session, Composer } = require('telegraf');
 const { setUrlSheet, setGroup, getUrlSheet, bot } = require('../config/data');
 const { getGroup, getUsersPermissions } = require('../config/data');
 const { getListBySheetName } = require('../sheets/google');
-const { generateByCompany, generateAbout, generateCommandList, generateRoutineInfo, generateError, generateURLContext, generateGroupIdDefault } = require('./templates');
+const { 
+  generateByCompany, 
+  generateAbout, 
+  generateCommandList, 
+  generateRoutineInfo, 
+  generateError, 
+  generateURLContext, 
+  generateGroupIdDefault, 
+  generateBacklogMonth, 
+  generateBotAbout
+} = require('./templates');
+const { getDateNow } = require('../config/util');
 
 
 const hasPermission = async (context, next) => {
@@ -20,6 +31,11 @@ const about = async (context) => {
   // await context.replyWithMarkdownV2(message, { parse_mode: 'html' });
 }
 
+const botAbout = async (context) => {
+  const message = generateBotAbout(context.from.first_name, context.botInfo.first_name);
+  await context.sendMessage(message, { parse_mode: 'html' });
+}
+
 /*const teste = async (context) => {
   let data = await getListBySheetName();
   const messages = generateByCompany(data, ['CHAVE', 'PIX', 'STATUS', 'VENCIMENTO', 'EMPRESA']);
@@ -30,7 +46,7 @@ const about = async (context) => {
 }*/
 
 const commandList = async (context) => {
-  const message = generateCommandList(context.from.first_name);
+  const message = generateCommandList(context.from.first_name, context.botInfo.first_name);
   await context.sendMessage(message, { parse_mode: 'html' });
 }
 
@@ -39,7 +55,7 @@ const routineInfo = async (context) => {
   await context.sendMessage(message, { parse_mode: 'html' });
 }
 
-const dailyInfo = async (context, byCommand = false) => {
+const dailyInfo = async (context, byCommand = false, byDailyRoutine = true) => {
 
   const sendMessage = async (message, options) => {
     if(byCommand) {
@@ -53,17 +69,45 @@ const dailyInfo = async (context, byCommand = false) => {
     }
   }
 
+  const filter = (item) => item.VENCIMENTO && !item.STATUS.includes('PAGAMENTO');
+
   try {
-    const data = await getListBySheetName();
-    const messages = generateByCompany(data, ['CHAVE', 'PIX', 'STATUS', 'VENCIMENTO', 'EMPRESA']);
+    const data = await getListBySheetName(null, filter);
+    const dataPerDay = data.filter(item => item.VENCIMENTO === getDateNow());
+
+    const messages = generateByCompany(dataPerDay, ['CHAVE', 'PIX', 'STATUS', 'VENCIMENTO', 'EMPRESA']);
 
     for await (const message of messages) {
       await sendMessage(message, { parse_mode: 'html' });
     }
+
+    const messagesAllDays = generateBacklogMonth(context.from?.first_name, data, byCommand, byDailyRoutine);
+
+    for await (const message of messagesAllDays) {
+      await sendMessage(message, { parse_mode: 'html' });
+    }
+
   } catch(error) {
     console.log('Error: ', error);
     const messageError = generateError(error.message);
     await sendMessage(messageError);
+  } 
+}
+
+const backlogMonthInfo = async (context) => {
+  const filter = (item) => item.VENCIMENTO && !item.STATUS.includes('PAGAMENTO');
+
+  try {
+    const data = await getListBySheetName(null, filter);
+    const messages = generateBacklogMonth(context.from.first_name, data, false, false);
+
+    for await (const message of messages) {
+      await context.sendMessage(message, { parse_mode: 'html', chat_id: getGroup().id });
+    }
+  } catch(error) {
+    console.log('Error: ', error);
+    const messageError = generateError(error.message);
+    await context.sendMessage(messageError, { parse_mode: 'html', chat_id: getGroup().id });
   } 
 }
 
@@ -170,6 +214,7 @@ const saveGroupIdDefault = (context) => {
 
 module.exports = { 
   about,
+  botAbout,
   configureScenens,
   saveGroupIdDefault,
   saveUrlSheWizardScenes,
@@ -177,4 +222,5 @@ module.exports = {
   commandList,
   routineInfo,
   dailyInfo,
+  backlogMonthInfo
 }
