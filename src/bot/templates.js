@@ -131,7 +131,7 @@ const generateBacklogMonth = (name = '', items, byCommand = false, byDailyRoutin
   
   const prefix = byDailyRoutine || byCommand ? '' : `Olá <b>${name}</b>, `;
   const firstMessage = 
-    `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pendências por dia referênte ao mês de: <b>${getDateNowMonth()}</b>`;
+    `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pendências por dia referente ao mês de: <b>${getDateNowMonth()}</b>`;
     
   messages.push(firstMessage);
 
