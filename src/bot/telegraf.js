@@ -15,6 +15,13 @@ const {
 const initTelegraf = async () => {
   try {
 
+    const res = await bot.telegram.deleteWebhook();
+    console.log('Bot Delete WebHook:', res);
+    
+    if(process.env?.URL_CLOUD.trim()) {
+      await bot.telegram.setWebhook(process.env.URL_CLOUD + '/apibot' || '')
+    }
+
     configureScenens(bot);
     
     bot.use(hasPermission);
@@ -30,12 +37,6 @@ const initTelegraf = async () => {
     bot.use(backlogMonthInfo(/pendenciasdomes/ig));
     
     console.log('Bot RUNING...');
-    
-    await bot.telegram.deleteWebhook();
-    
-    if(process.env?.URL_CLOUD.trim()) {
-      await bot.telegram.setWebhook(process.env.URL_CLOUD + '/apibot' || '')
-    }
     
     const botInfo = (await bot.telegram.getWebhookInfo());
     console.log('Bot INFO:', botInfo);
