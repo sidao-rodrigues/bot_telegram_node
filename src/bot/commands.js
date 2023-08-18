@@ -11,7 +11,8 @@ const {
   generateURLContext, 
   generateGroupIdDefault, 
   generateBacklogMonth, 
-  generateBotAbout
+  generateBotAbout,
+  generateBacklogInfo
 } = require('./templates');
 const { getDateNow } = require('../config/util');
 
@@ -81,7 +82,7 @@ const dailyInfo = async (context, byCommand = false, byDailyRoutine = true) => {
       await sendMessage(message, { parse_mode: 'html' });
     }
 
-    const messagesAllDays = generateBacklogMonth(context.from?.first_name, data, byCommand, byDailyRoutine);
+    const messagesAllDays = generateBacklogMonth(context.from?.first_name, data, { byCommand, byDailyRoutine });
 
     for await (const message of messagesAllDays) {
       await sendMessage(message, { parse_mode: 'html' });
@@ -94,21 +95,47 @@ const dailyInfo = async (context, byCommand = false, byDailyRoutine = true) => {
   } 
 }
 
-const backlogMonthInfo = async (context) => {
-  const filter = (item) => item.VENCIMENTO && !item.STATUS.includes('PAGAMENTO');
+// BUTTONS ONLY
 
-  try {
-    const data = await getListBySheetName(null, filter);
-    const messages = generateBacklogMonth(context.from.first_name, data, false, false);
+const backlogMonthInfo = (command) => {
+  const composer = new Composer();
 
-    for await (const message of messages) {
-      await context.sendMessage(message, { parse_mode: 'html', chat_id: getGroup().id });
+  composer.command(command, async (context) => {
+    const message = generateBacklogInfo({}, 1);
+    await context.sendMessage(message, { 
+      parse_mode: 'html',
+      reply_markup: {
+        inline_keyboard: [
+          [ { text: 'SIMPLIFICADOS', callback_data: 'short_option' }, { text: 'COMPLETOS', callback_data: 'long_option' } ]
+        ]
+      } 
+    });
+  });
+
+  composer.on('callback_query', async (context) => {
+    await context.deleteMessage();
+
+    const filter = (item) => item.VENCIMENTO && !item.STATUS.includes('PAGAMENTO');
+
+    try {
+      const data = await getListBySheetName(null, filter);
+      const messages = generateBacklogMonth(context.from.first_name, data, { 
+        shortInfo: context.update.callback_query.data === 'short_option', 
+        byDailyRoutine: false, 
+        listAll: true 
+      });
+
+      for await (const message of messages) {
+        await context.sendMessage(message, { parse_mode: 'html', chat_id: getGroup().id });
+      }
+    } catch(error) {
+      console.log('Error: ', error);
+      const messageError = generateError(error.message);
+      await context.sendMessage(messageError, { parse_mode: 'html', chat_id: getGroup().id });
     }
-  } catch(error) {
-    console.log('Error: ', error);
-    const messageError = generateError(error.message);
-    await context.sendMessage(messageError, { parse_mode: 'html', chat_id: getGroup().id });
-  } 
+  });
+
+  return composer;
 }
 
 // SCENES

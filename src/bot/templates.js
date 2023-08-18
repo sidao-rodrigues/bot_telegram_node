@@ -1,4 +1,4 @@
-const { randomNumber, getDatetimeNow, getDateNowMonth, getAppVersion } = require("../config/util");
+const { randomNumber, getDatetimeNow, getDateNowMonth, getAppVersion, getDateNow } = require("../config/util");
 
 const URLS = {
   LINKEDIN: 'linkedin.com/in/sidney-rodrigues-54849190',
@@ -28,6 +28,11 @@ const mergeItem = (item, idx, columnBold, removeColumns) => {
         return `${acc}${idx === obj.length - 1 ? '</pre>\n\n\n' : ''}`;
       }
   }, '');
+}
+
+const mergeCompany = (item) => {
+  const [key, value] = Object.entries(item)[0];
+  return `\t📌 - <b>${key}</b>: <pre>${String(value).padStart(3, '0')}</pre>\n`;
 }
 
 // templates
@@ -126,12 +131,13 @@ const generateRoutineInfo = (name, group) => {
   return message;
 }
 
-const generateBacklogMonth = (name = '', items, byCommand = false, byDailyRoutine = true) => {
+const generateBacklogMonth = (name = '', items, { byCommand = false, byDailyRoutine = true, shortInfo = true, listAll = false }) => {
   const messages = [];
   
   const prefix = byDailyRoutine || byCommand ? '' : `Olá <b>${name}</b>, `;
   const firstMessage = 
-    `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pendências por dia referente ao mês de: <b>${getDateNowMonth()}</b>`;
+    `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pendências por dia,` + 
+    ` referente a planinha do mês de: <b>${getDateNowMonth()}</b>`;
     
   messages.push(firstMessage);
 
@@ -151,21 +157,70 @@ const generateBacklogMonth = (name = '', items, byCommand = false, byDailyRoutin
 
     values = values.sort((a, b) => a.dateNumber > b.dateNumber ? 1 : (a.dateNumber < b.dateNumber ? - 1 : 0));
 
-    let text = '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
-    values.forEach((item, idx) => {
-      const dateText = `🗓️ <pre>${item.date}: ${item.quantityPerDay}</pre>\n`;
-
-      if((text.length + dateText.length) > 4096) {
-        messages.push(text);
-        text = dateText;
-      } else {
-        text += dateText;
+    if(shortInfo) {
+      const dateNow = getDateNow().split('/').reverse().join('');
+      
+      if(!listAll) {
+        values = values.filter(item => item.dateNumber < dateNow);
       }
 
-      if(idx === values.length - 1) {
-        messages.push(text);
-      }
-    });
+      let text = '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
+      values.forEach((item, idx) => {
+        const dateText = `🗓️ <pre>${item.date}: ${item.quantityPerDay}</pre>\n`;
+  
+        if((text.length + dateText.length) > 4096) {
+          messages.push(text);
+          text = dateText;
+        } else {
+          text += dateText;
+        }
+  
+        if(idx === values.length - 1) {
+          messages.push(text);
+        }
+      });
+    } else {
+      const title = '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
+      messages.push(title);
+
+      let dateText = '';
+      values.forEach((item, idx) => {
+        dateText += `\n🗓️ <pre>${item.date}: ${item.quantityPerDay}</pre>\n`;
+        
+        const response = item.quantityPerCompany.reduce((acc, item) => {
+          return acc + mergeCompany(item);
+        }, '');
+
+        if((dateText.length + response.length) > 4096) {
+          messages.push(dateText);
+          dateText = response;
+        } else {
+          dateText += response;
+        }
+
+        if(idx === values.length - 1) {
+          messages.push(dateText);
+        }
+
+        /*let dateText = `🗓️ <pre>${item.date}: ${item.quantityPerDay}</pre>\n\n`;
+
+        item.quantityPerCompany.forEach((i, idx) => {
+          const response = mergeCompany(i);
+
+          if((dateText.length + response.length) > 4096) {
+            messages.push(dateText);
+            dateText = response;
+          } else {
+            dateText += response;
+          }
+
+          if(idx === item.quantityPerCompany.length - 1) {
+            messages.push(dateText);
+          }
+        });*/
+      });
+    }
+
   } else {
     const lastMessage = 'Não há pendências nesse mês 👏👏🥳🥳🤗🤗';
     messages.push(lastMessage);
@@ -210,6 +265,13 @@ const generateGroupIdDefault = (data, step) => {
   return steps[step] ?? generateError('Erro na geração do contexto de <b>generateGroupIdDefault</b>');
 }
 
+const generateBacklogInfo = (data, step) => {
+  const steps = {
+    1: 'Deseja obter os dados simplificados ou completos?'
+  };
+  return steps[step] ?? generateError('Erro na geração do contexto de <b>generateGroupIdDefault</b>');
+}
+
 module.exports = {
   generateByCompany,
   generateBacklogMonth,
@@ -219,5 +281,6 @@ module.exports = {
   generateRoutineInfo,
   generateError,
   generateURLContext,
-  generateGroupIdDefault
+  generateGroupIdDefault,
+  generateBacklogInfo
 }

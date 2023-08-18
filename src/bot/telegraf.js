@@ -27,7 +27,7 @@ const initTelegraf = async () => {
     bot.command(/comandos/ig, commandList);
     bot.command(/rotinas/ig, routineInfo);
     bot.command(/informacoesdiaria/ig, (context) => dailyInfo(context, true, false));
-    bot.command(/pendenciasdomes/ig, backlogMonthInfo);
+    bot.use(backlogMonthInfo(/pendenciasdomes/ig));
     
     console.log('Bot RUNING...');
     
