@@ -91,7 +91,7 @@ const dailyInfo = async (context, byCommand = false, byDailyRoutine = true) => {
   } catch(error) {
     console.log('Error: ', error);
     const messageError = generateError(error.message);
-    await sendMessage(messageError);
+    await sendMessage(messageError, { parse_mode: 'html' });
   } 
 }
 

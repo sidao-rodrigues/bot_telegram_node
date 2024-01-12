@@ -18,21 +18,21 @@ const groupByColumn = (items, columnName) => {
 
 const mergeItem = (item, idx, columnBold, removeColumns) => {
   const emojisNumbers = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣'];
-  return `<pre><b>ITEM</b> ${idx+1 < 10 ? (emojisNumbers[0]+''+emojisNumbers[idx+1]) : (emojisNumbers[String(idx+1)[0]]+''+emojisNumbers[String(idx+1)[1]])}\n` +
+  return `<code><b>ITEM</b> ${idx+1 < 10 ? (emojisNumbers[0]+''+emojisNumbers[idx+1]) : (emojisNumbers[String(idx+1)[0]]+''+emojisNumbers[String(idx+1)[1]])}\n` +
     Object.entries(item).reduce((acc, [key, value], idx, obj) => {
       const removeColum = removeColumns.some(column => key.toUpperCase().includes(column));
       const isBoldValue = columnBold.includes(key) ? `<b>${verifyValue(value)}</b>` : verifyValue(value);
       if(!removeColum) {
-        return `${acc}${idx < obj.length && idx !== 0 ? ' | ' : ''}${isBoldValue}${idx === obj.length - 1 ? '</pre>\n\n\n' : ''}`;
+        return `${acc}${idx < obj.length && idx !== 0 ? ' | ' : ''}${isBoldValue}${idx === obj.length - 1 ? '</code>\n\n\n' : ''}`;
       } else {
-        return `${acc}${idx === obj.length - 1 ? '</pre>\n\n\n' : ''}`;
+        return `${acc}${idx === obj.length - 1 ? '</code>\n\n\n' : ''}`;
       }
   }, '');
 }
 
 const mergeCompany = (item) => {
   const [key, value] = Object.entries(item)[0];
-  return `\t📌 - <b>${key}</b>: <pre>${String(value).padStart(3, '0')}</pre>\n`;
+  return `\t📌 - <b>${key}</b>: <code>${String(value).padStart(3, '0')}</code>\n`;
 }
 
 // templates
@@ -85,7 +85,7 @@ const generateByCompany = (items, removeColumns = ['CHAVE PIX', 'PIX', 'STATUS']
 const generateError = (error) => {
   const message = 
     `Eiiita pessoal, vi aqui que ocorreu algum problema ao buscar os dados ou realizar algum processamento 😭😭😭😭😭\n\n\n` + 
-    'Descrição do erro: ' + `<pre>${error}</pre>`;
+    'Descrição do erro: ' + `<code>${error}</code>`;
   return message;
 }
 
@@ -166,7 +166,7 @@ const generateBacklogMonth = (name = '', items, { byCommand = false, byDailyRout
 
       let text = '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
       values.forEach((item, idx) => {
-        const dateText = `🗓️ <pre>${item.date}: ${item.quantityPerDay}</pre>\n`;
+        const dateText = `🗓️ ${item.date}: <code>${item.quantityPerDay}</code>\n`;
   
         if((text.length + dateText.length) > 4096) {
           messages.push(text);
@@ -185,7 +185,7 @@ const generateBacklogMonth = (name = '', items, { byCommand = false, byDailyRout
 
       let dateText = '';
       values.forEach((item, idx) => {
-        dateText += `\n🗓️ <pre>${item.date}: ${item.quantityPerDay}</pre>\n`;
+        dateText += `\n🗓️ ${item.date}: <code>${item.quantityPerDay}</code>\n`;
         
         const response = item.quantityPerCompany.reduce((acc, item) => {
           return acc + mergeCompany(item);
@@ -234,8 +234,8 @@ const generateURLContext = (data, step) => {
   const steps = {
     1: data.urlSheet ? 
       `Olá ${data.name}❗️\n\nJá <b>existe</b> uma URL do Google Sheets cadastrada.\n\n` + 
-        `Insira uma nova URL do Google Sheets para ser substituída (para cancelar digite <pre>cancelar</pre>):` : 
-      `Olá ${data.name}❗️\n\nInsira uma URL do Google Sheets para ser cadastrada (para cancelar digite <pre>cancelar</pre>):`,
+        `Insira uma nova URL do Google Sheets para ser substituída (para cancelar digite <code>cancelar</code>):` : 
+      `Olá ${data.name}❗️\n\nInsira uma URL do Google Sheets para ser cadastrada (para cancelar digite <code>cancelar</code>):`,
     2: {
       message: data.url ? 
         `URL Salva com sucesso❗️\n\nURL: <a href="${data.url}">URL Google</a>` : 
