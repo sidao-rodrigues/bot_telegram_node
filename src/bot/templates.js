@@ -1,4 +1,4 @@
-const { randomNumber, getDatetimeNow, getDateNowMonth, getAppVersion, getDateNow } = require("../config/util");
+const { randomNumber, getDatetimeNow, getDateNowMonth, getAppVersion, getDateNow, getDateNowYear } = require("../config/util");
 
 const URLS = {
   LINKEDIN: 'linkedin.com/in/sidney-rodrigues-54849190',
@@ -137,7 +137,7 @@ const generateBacklogMonth = (name = '', items, { byCommand = false, byDailyRout
   const prefix = byDailyRoutine || byCommand ? '' : `Olá <b>${name}</b>, `;
   const firstMessage = 
     `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pendências por dia,` + 
-    ` referente a planilha do mês de: <b>${getDateNowMonth()}</b>`;
+    ` referente a planilha do mês de: <b>${getDateNowMonth()}${getDateNowYear()}</b>`;
     
   messages.push(firstMessage);
 
