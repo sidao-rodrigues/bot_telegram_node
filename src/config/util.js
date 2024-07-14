@@ -15,6 +15,11 @@ const getDateNowMonth = () => {
   return date.toLocaleDateString('pt-br', { month: 'long' }).toUpperCase();
 }
 
+const getDateNowMonthNumeric = () => {
+  const date = new Date();
+  return date.toLocaleDateString('pt-br', { month: 'numeric' });
+}
+
 const getDateNowYear = () => {
   const date = new Date();
   return date.toLocaleDateString('pt-br', { year: 'numeric' });
@@ -63,6 +68,7 @@ const convertCsvToJson = async (csv, trimColumn = true, options = {}) => {
 
 module.exports = {
   getDateNowMonth,
+  getDateNowMonthNumeric,
   getDateNowYear,
   getDateNow,
   getTokeURL,
