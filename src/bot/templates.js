@@ -1,4 +1,12 @@
-const { randomNumber, getDatetimeNow, getDateNowMonth, getAppVersion, getDateNow, getDateNowYear } = require("../config/util");
+const { 
+  randomNumber,
+  getDatetimeNow,
+  getDateNowMonth,
+  getAppVersion,
+  getDateNow,
+  getDateNowYear,
+  getDateNowMonthNumeric
+} = require("../config/util");
 
 const URLS = {
   LINKEDIN: 'linkedin.com/in/sidney-rodrigues-54849190',
@@ -37,7 +45,16 @@ const mergeCompany = (item) => {
 
 // templates
 
-const generateByCompany = (items, removeColumns = ['CHAVE PIX', 'PIX', 'STATUS'], columnBold = 'DESCRIÇÃO', columnName = 'EMPRESA') => {
+const generateByCompany = (
+  items,
+  {
+    firstMsg,
+    removeColumns = ['CHAVE PIX', 'PIX', 'STATUS'],
+    columnBold = 'DESCRIÇÃO',
+    columnName = 'EMPRESA',
+    sendFirstMsg = true,
+  }
+) => {
 
   const messages = [];
   const emojis = [
@@ -50,13 +67,15 @@ const generateByCompany = (items, removeColumns = ['CHAVE PIX', 'PIX', 'STATUS']
   
   const data = groupByColumn(items, columnName);
   
-  const firstMessage = 
+  const firstMessage = firstMsg ?? (
     `${saudations[oneSaudation]} ${emojis[one]} ${emojis[two]}\nSegue Informativo das pendências\n\n` + 
     `Vencimento: <b>${getDatetimeNow().replace(',', ' às')}</b>\n\n` +
     `Quantidade de Pendências: <code>${items?.length || 0}</code>\n` + 
-    `${items?.length === 0 ? 'Nenhuma Pendência 👏👏👏👏👏🥳🥳🥳🥳' : ''}`;
+    `${items?.length === 0 ? 'Nenhuma Pendência 👏👏👏👏👏🥳🥳🥳🥳' : ''}`);
 
-  messages.push(firstMessage);
+  if(sendFirstMsg) {
+    messages.push(firstMessage);
+  }
 
   if(items?.length > 0) {
     let aux = 0;
@@ -118,6 +137,7 @@ const generateCommandList = (name, botName) => {
     '/comandos - Listar comandos disponíveis\n\n' +
     '/rotinas - Listar horários das notificações\n\n' +
     '/informacoesdiaria - Listar pendências diária\n\n' +
+    '/filtrosimples - Filtrar pendências por opções simples\n\n' +
     '/pendenciasdomes - Listar quantidade de pendências do mês\n\n';
   return message;
 }
@@ -131,15 +151,30 @@ const generateRoutineInfo = (name, group) => {
   return message;
 }
 
-const generateBacklogMonth = (name = '', items, { byCommand = false, byDailyRoutine = true, shortInfo = true, listAll = false }) => {
+const generateBacklogMonth = (
+  name = '', 
+  items, 
+  { 
+    firstMsg,
+    firstText,
+    lastMsg,
+    byCommand = false, 
+    byDailyRoutine = true, 
+    shortInfo = true, 
+    listAll = false,
+    sendFirstMsg = true,
+  }
+) => {
   const messages = [];
   
   const prefix = byDailyRoutine || byCommand ? '' : `Olá <b>${name}</b>, `;
-  const firstMessage = 
+  const firstMessage = firstMsg ?? (
     `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n${prefix}Segue informativo de quantidade de pendências por dia,` + 
-    ` referente a planilha do mês de: <b>${getDateNowMonth()}${getDateNowYear()}</b>`;
-    
-  messages.push(firstMessage);
+    ` referente a planilha do mês de: <b>${getDateNowMonth()}${getDateNowYear()}</b>`);
+  
+  if(sendFirstMsg) {
+    messages.push(firstMessage);
+  }
 
   if(items.length > 0) {
     const data = groupByColumn(items, 'VENCIMENTO');
@@ -164,9 +199,9 @@ const generateBacklogMonth = (name = '', items, { byCommand = false, byDailyRout
         values = values.filter(item => item.dateNumber < dateNow);
       }
 
-      let text = '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
+      let text = firstText ?? '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
       values.forEach((item, idx) => {
-        const dateText = `🗓️ ${item.date}: <code>${item.quantityPerDay}</code>\n`;
+        const dateText = `🗓️ ${item.date || 'Sem Data'}: <code>${item.quantityPerDay}</code>\n`;
   
         if((text.length + dateText.length) > 4096) {
           messages.push(text);
@@ -180,12 +215,12 @@ const generateBacklogMonth = (name = '', items, { byCommand = false, byDailyRout
         }
       });
     } else {
-      const title = '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
+      const title = firstText ?? '📅 <i><b>Vencimentos por Dias</b></i> 📅\n\n';
       messages.push(title);
 
       let dateText = '';
       values.forEach((item, idx) => {
-        dateText += `\n🗓️ ${item.date}: <code>${item.quantityPerDay}</code>\n`;
+        dateText += `\n🗓️ ${item.date || 'Sem Data'}: <code>${item.quantityPerDay}</code>\n`;
         
         const response = item.quantityPerCompany.reduce((acc, item) => {
           return acc + mergeCompany(item);
@@ -222,7 +257,7 @@ const generateBacklogMonth = (name = '', items, { byCommand = false, byDailyRout
     }
 
   } else {
-    const lastMessage = 'Não há pendências nesse mês 👏👏🥳🥳🤗🤗';
+    const lastMessage = lastMsg ?? 'Não há pendências nesse mês 👏👏🥳🥳🤗🤗';
     messages.push(lastMessage);
   }
   return messages;
@@ -267,9 +302,56 @@ const generateGroupIdDefault = (data, step) => {
 
 const generateBacklogInfo = (data, step) => {
   const steps = {
-    1: 'Deseja obter os dados simplificados ou completos?'
+    1: {
+      message: 'Deseja obter os dados simplificados ou completos?',
+      buttons: [
+        [ 
+          { text: 'SIMPLIFICADOS', callback_data: 'short_option' },
+          { text: 'COMPLETOS', callback_data: 'long_option' } 
+        ]
+      ]
+    }
   };
-  return steps[step] ?? generateError('Erro na geração do contexto de <b>generateGroupIdDefault</b>');
+  return steps[step] ?? generateError('Erro na geração do contexto de <b>generateBacklogInfo</b>');
+}
+
+const generateSimpleFilter = (data, step) => {
+
+  const generateButtons = (perLine = 7) => {
+    const days = 29 + (getDateNowMonthNumeric() === 2 ? 0 : 
+      ([4, 6, 9, 11].includes(getDateNowMonthNumeric()) ? 1 : 2)
+    );
+
+    return Array(Math.ceil(days / perLine)).fill(0)
+      .map((_, idx, arr) => {
+        const buttons = [...Array(days).keys()].slice(idx * perLine, (idx + 1) * perLine)
+          .map((day) => ({ text: String(day + 1).padStart(2, '0'), callback_data: String(day + 1).padStart(2, '0') }));
+        
+        if(idx === arr.length - 1) {
+          buttons.push({ text: 'Sem Data', callback_data: 'S/D' });
+        }
+        return buttons;
+      })
+  }
+
+  const steps = {
+    1: {
+      message: 
+        `Filtrar pendências referente a planilha do mês de: <b>${getDateNowMonth()}${getDateNowYear()}</b>\n` +
+        `Selecione um dia.`,
+      buttons: generateButtons(data?.perLine)
+    },
+    2: {
+      message: 
+        `📈📈📈📈📈📈📈📈📈📈📈📈📈\n\n` +
+        `Filtrando pendências pela data: <b>${data?.seletedDay}</b>.\n` +
+        `Referente a planilha: <b>${getDateNowMonth()}${getDateNowYear()}</b>`,
+      firstText: '📅 <i><b>Quantidade pela Data</b></i> 📅\n\n',
+      lastMessage: 'Não há pendências nesse dia 👏👏🥳🥳🤗🤗'
+    },
+    // wrong_day: `O valor (<b>${data.wrongDay}</b>) não é valido❗️🥲\n\nPor favor, informe um dia válido (1 a 31):`,
+  };
+  return steps[step] ?? generateError('Erro na geração do contexto de <b>generateSimpleFilter</b>');
 }
 
 module.exports = {
@@ -282,5 +364,6 @@ module.exports = {
   generateError,
   generateURLContext,
   generateGroupIdDefault,
-  generateBacklogInfo
+  generateBacklogInfo,
+  generateSimpleFilter
 }

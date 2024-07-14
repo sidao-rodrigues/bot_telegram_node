@@ -12,9 +12,10 @@ const {
   generateGroupIdDefault, 
   generateBacklogMonth, 
   generateBotAbout,
-  generateBacklogInfo
+  generateBacklogInfo,
+  generateSimpleFilter
 } = require('./templates');
-const { getDateNow } = require('../config/util');
+const { getDateNow, getDateNowMonthNumeric, getDateNowYear } = require('../config/util');
 
 
 const hasPermission = async (context, next) => {
@@ -76,7 +77,9 @@ const dailyInfo = async (context, byCommand = false, byDailyRoutine = true) => {
     const data = await getListBySheetName(null, filter);
     const dataPerDay = data.filter(item => item.VENCIMENTO === getDateNow());
 
-    const messages = generateByCompany(dataPerDay, ['CHAVE', 'PIX', 'STATUS', 'VENCIMENTO', 'EMPRESA']);
+    const messages = generateByCompany(dataPerDay, {
+      removeColumns: ['CHAVE', 'PIX', 'STATUS', 'VENCIMENTO', 'EMPRESA']
+    });
 
     for await (const message of messages) {
       await sendMessage(message, { parse_mode: 'html' });
@@ -96,7 +99,7 @@ const dailyInfo = async (context, byCommand = false, byDailyRoutine = true) => {
 }
 
 // BUTTONS ONLY
-
+/*
 const backlogMonthInfo = (command) => {
   const composer = new Composer();
 
@@ -113,6 +116,10 @@ const backlogMonthInfo = (command) => {
   });
 
   composer.on('callback_query', async (context) => {
+
+    if(!['short_option', 'long_option'].includes(context.update.callback_query.data)) {
+      return
+    }
     await context.deleteMessage();
 
     const filter = (item) => item.VENCIMENTO && !item.STATUS.includes('PAGAMENTO');
@@ -136,7 +143,7 @@ const backlogMonthInfo = (command) => {
   });
 
   return composer;
-}
+}*/
 
 // SCENES
 
@@ -144,6 +151,8 @@ const configureScenens = (bot) => {
   const scenes = [
     configureUrlContext(),
     configureGroupIdDefault(),
+    configureSimpleFilter(),
+    configureBacklogMonthInfoV2(),
   ];
   const stage = new Scenes.Stage(scenes);
   bot.use(session());
@@ -231,12 +240,133 @@ const configureGroupIdDefault = () => {
   return new Scenes.WizardScene('groupId', startComposer, option);
 }
 
+const configureSimpleFilter = () => {
+  const [startComposer, option] = [new Composer(), new Composer()];
+
+  startComposer.on('text', async (context) => {
+    const { message, buttons } = generateSimpleFilter({}, 1);
+
+    context.wizard.state.data = { date: {} };
+
+    await context.sendMessage(message, { 
+      parse_mode: 'html',
+      reply_markup: { inline_keyboard: buttons }
+    });
+    return context.wizard.next();
+  });
+  
+  option.on('callback_query', async (context) => {
+    const { data: dayNumber } = context.update.callback_query;
+    const date = dayNumber === 'S/D' ? undefined : `${dayNumber}/${getDateNowMonthNumeric().padStart('2', '0')}/${getDateNowYear()}`;
+
+    const { message, firstText, lastMessage } = generateSimpleFilter({ seletedDay: date ?? 'Sem Data' }, 2);
+
+    context.answerCbQuery('Carregando...');
+    await context.deleteMessage();
+
+    try {
+      const data = await getListBySheetName(
+        null,
+        (item) => (
+          (date ? (item.VENCIMENTO && item.VENCIMENTO.includes(date)) : (!item.VENCIMENTO)) &&
+          !item.STATUS.includes('PAGAMENTO') && (item.CATEGORIA || item.DESCRICAO)
+        )
+      );
+      
+      const messages = generateByCompany(data, {
+        removeColumns: ['CHAVE', 'PIX', 'VENCIMENTO', 'EMPRESA'],
+        firstMsg: message,
+      });
+
+      const messagesPerDate = generateBacklogMonth(context.from.first_name, data, { 
+        firstText,
+        firstMsg: message,
+        lastMsg: lastMessage,
+        shortInfo: false, 
+        byDailyRoutine: false, 
+        listAll: true,
+        sendFirstMsg: false
+      });
+
+      for await (const message of messages) {
+        await context.sendMessage(message, { parse_mode: 'html', chat_id: getGroup().id });
+      }
+
+      for await (const message of messagesPerDate) {
+        await context.sendMessage(message, { parse_mode: 'html', chat_id: getGroup().id });
+      }
+    } catch(error) {
+      console.log('Error: ', error);
+      const messageError = generateError(error.message);
+      await context.sendMessage(messageError, { parse_mode: 'html', chat_id: getGroup().id });
+    }
+
+    return context.scene.leave();
+  })
+
+  return new Scenes.WizardScene('simpleFilter', startComposer, option);
+}
+
+const configureBacklogMonthInfoV2 = () => {
+  const [startComposer, option] = [new Composer(), new Composer()];
+
+  startComposer.on('text', async (context) => {
+    const { message, buttons } = generateBacklogInfo({}, 1);
+
+    context.wizard.state.data = { date: {} };
+
+    await context.sendMessage(message, { 
+      parse_mode: 'html',
+      reply_markup: { inline_keyboard: buttons }
+    });
+    return context.wizard.next();
+  });
+
+  option.on('callback_query', async (context) => {
+    const { data: dataQuery } = context.update.callback_query;
+
+    context.answerCbQuery('Carregando...');
+    await context.deleteMessage();
+
+    const filter = (item) => item.VENCIMENTO && !item.STATUS.includes('PAGAMENTO');
+
+    try {
+      const data = await getListBySheetName(null, filter);
+      const messages = generateBacklogMonth(context.from.first_name, data, { 
+        shortInfo: dataQuery === 'short_option', 
+        byDailyRoutine: false, 
+        listAll: true 
+      });
+
+      for await (const message of messages) {
+        await context.sendMessage(message, { parse_mode: 'html', chat_id: getGroup().id });
+      }
+    } catch(error) {
+      console.log('Error: ', error);
+      const messageError = generateError(error.message);
+      await context.sendMessage(messageError, { parse_mode: 'html', chat_id: getGroup().id });
+    }
+
+    return context.scene.leave();
+  });
+
+  return new Scenes.WizardScene('backlogMonth', startComposer, option);
+}
+
 const saveUrlSheWizardScenes = (context) => {
   context.scene.enter('urlGoogle');
 }
 
 const saveGroupIdDefault = (context) => {
   context.scene.enter('groupId');
+}
+
+const saveSimpleFilterScene = (context) => {
+  context.scene.enter('simpleFilter')
+}
+
+const saveBacklogMonthInfoV2 = (context) => {
+  context.scene.enter('backlogMonth')
 }
 
 module.exports = { 
@@ -249,5 +379,6 @@ module.exports = {
   commandList,
   routineInfo,
   dailyInfo,
-  backlogMonthInfo
+  saveBacklogMonthInfoV2,
+  saveSimpleFilterScene
 }

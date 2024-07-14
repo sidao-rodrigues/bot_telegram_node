@@ -8,8 +8,9 @@ const {
   commandList,
   routineInfo,
   dailyInfo,
-  backlogMonthInfo,
-  botAbout
+  saveBacklogMonthInfoV2,
+  botAbout,
+  saveSimpleFilterScene
 } = require('./commands');
 
 const initTelegraf = async () => {
@@ -34,7 +35,9 @@ const initTelegraf = async () => {
     bot.command(/comandos/ig, commandList);
     bot.command(/rotinas/ig, routineInfo);
     bot.command(/informacoesdiaria/ig, (context) => dailyInfo(context, true, false));
-    bot.use(backlogMonthInfo(/pendenciasdomes/ig));
+    bot.command(/filtrosimples/ig, saveSimpleFilterScene);
+    bot.command(/pendenciasdomes/ig, saveBacklogMonthInfoV2);
+    // bot.use(backlogMonthInfo(/pendenciasdomes/ig));
     
     console.log('Bot RUNING...');
     
